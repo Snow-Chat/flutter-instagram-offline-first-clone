@@ -30,7 +30,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.emilzulufov.flutter_instagram_offline_first_clone"
+    namespace "com.snowchat.app"
     compileSdk 36
     ndkVersion "28.0.12433566"
     buildToolsVersion "36.0.0"
@@ -49,8 +49,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.emilzulufov.flutter_instagram_offline_first_clone"
+        // Firebase configured package name for com.snowchat.app
+        applicationId "com.snowchat.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk 24
@@ -82,17 +82,17 @@ android {
         production {
             dimension "default"
             applicationIdSuffix ""
-            manifestPlaceholders = [appName: "Flutter Instagram Offline First Clone"]
+            manifestPlaceholders = [appName: "SnowChat"]
         }
         staging {
             dimension "default"
             applicationIdSuffix ".stg"
-            manifestPlaceholders = [appName: "[STG] Flutter Instagram Offline First Clone"]
+            manifestPlaceholders = [appName: "[STG] SnowChat"]
         }
         development {
             dimension "default"
             applicationIdSuffix ".dev"
-            manifestPlaceholders = [appName: "[DEV] Flutter Instagram Offline First Clone"]
+            manifestPlaceholders = [appName: "[DEV] SnowChat"]
         }
     }
 
