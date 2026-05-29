@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:ignore="MissingLeanbackLauncher"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Provides the build type-specific manifest configuration -->
+    <!-- All package names are inherited from Gradle namespace -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+</manifest>
