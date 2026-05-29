@@ -52,7 +52,7 @@ android {
     }
 
     defaultConfig {
-        // Base package name - Firebase will use flavor-specific google-services.json
+        // Base package name
         applicationId "com.snowchat.app"
         minSdk 24
         targetSdk 36
@@ -109,40 +109,50 @@ android {
     }
 }
 
-// Configure Google Services plugin to use flavor-specific google-services.json
-after('plugins.google.gms.google-services') {
-    tasks.all { task ->
-        if (task.name.startsWith('process') && task.name.endsWith('GoogleServices')) {
-            task.doFirst {
-                println "Processing Google Services for ${task.name}"
+// Copy flavor-specific google-services.json before Google Services plugin processes it
+task copyGoogleServices {
+    doLast {
+        // Detect build flavor from task names
+        def buildVariant = 'production'
+        
+        gradle.startParameter.taskNames.each { taskName ->
+            if (taskName.toLowerCase().contains('development')) {
+                buildVariant = 'development'
+            } else if (taskName.toLowerCase().contains('staging')) {
+                buildVariant = 'staging'
+            } else if (taskName.toLowerCase().contains('production')) {
+                buildVariant = 'production'
             }
+        }
+        
+        println "[SnowChat] Copying google-services.json for flavor: ${buildVariant}"
+        
+        def flavorDir = "src/${buildVariant}"
+        def flavorGoogleServices = file("${flavorDir}/google-services.json")
+        def defaultGoogleServices = file('google-services.json')
+        def targetFile = file('google-services.json')
+        
+        if (flavorGoogleServices.exists()) {
+            println "[SnowChat] Found flavor-specific: ${flavorGoogleServices.absolutePath}"
+            copy {
+                from flavorGoogleServices
+                into '.'
+            }
+            println "[SnowChat] Copied flavor google-services.json for ${buildVariant}"
+        } else if (defaultGoogleServices.exists()) {
+            println "[SnowChat] Using default google-services.json"
+        } else {
+            throw new GradleException("[SnowChat] ERROR: No google-services.json found for ${buildVariant} flavor!")
         }
     }
 }
 
-// Copy flavor-specific google-services.json before build
-task copyGoogleServices {
-    doLast {
-        def buildVariant = android.productFlavors.collect { it.name }.find { buildName ->
-            gradle.startParameter.taskNames.any { it.contains(buildName) }
-        } ?: 'production'
-
-        def flavorDir = "src/${buildVariant}"
-        def flavorGoogleServices = file("${flavorDir}/google-services.json")
-        def defaultGoogleServices = file('google-services.json')
-
-        if (flavorGoogleServices.exists()) {
-            println "Copying flavor-specific google-services.json for ${buildVariant}"
-            copy {
-                from flavorGoogleServices
-                into '.'
-                rename { 'google-services.json' }
-            }
-        } else if (defaultGoogleServices.exists()) {
-            println "Using default google-services.json for ${buildVariant}"
-        } else {
-            println "WARNING: No google-services.json found for ${buildVariant}!"
-        }
+// Ensure copyGoogleServices runs before Google Services plugin processes the file
+tasks.whenTaskAdded { task ->
+    if (task.name == 'processDebugGoogleServices' || 
+        task.name == 'processReleaseGoogleServices' ||
+        task.name.contains('processGoogle')) {
+        task.dependsOn copyGoogleServices
     }
 }
 
