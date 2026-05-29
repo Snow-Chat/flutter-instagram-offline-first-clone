@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-package="com.emilzulufov.flutter_instagram_offline_first_clone">
+package="com.snowchat.app">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -9,6 +9,8 @@ package="com.emilzulufov.flutter_instagram_offline_first_clone">
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- Firebase Cloud Messaging Permissions -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
@@ -40,6 +42,19 @@ package="com.emilzulufov.flutter_instagram_offline_first_clone">
         <meta-data android:name="com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS" android:value="true" />
         <meta-data android:name="com.posthog.posthog.DEBUG" android:value="true" />
 
+        <!-- Firebase Cloud Messaging Configuration -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="chat_channel" />
+
+        <service
+            android:name=".services.FirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -56,11 +71,7 @@ package="com.emilzulufov.flutter_instagram_offline_first_clone">
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />  
-              <meta-data
-              android:name="com.google.firebase.messaging.default_notification_channel_id"
-              android:value="chat_channel"
-              />
-              
+               
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
