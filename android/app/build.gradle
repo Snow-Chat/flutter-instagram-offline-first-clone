@@ -46,13 +46,14 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        production.java.srcDirs += 'src/production/kotlin'
+        staging.java.srcDirs += 'src/staging/kotlin'
+        development.java.srcDirs += 'src/development/kotlin'
     }
 
     defaultConfig {
-        // Firebase configured package name for com.snowchat.app
+        // Base package name - Firebase will use flavor-specific google-services.json
         applicationId "com.snowchat.app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk 24
         targetSdk 36
         versionCode flutterVersionCode.toInteger()
@@ -78,20 +79,20 @@ android {
     }
 
     flavorDimensions "default"
-    productFlavors { 
+    productFlavors {
         production {
             dimension "default"
-            applicationIdSuffix ""
+            applicationId "com.snowchat.app"
             manifestPlaceholders = [appName: "SnowChat"]
         }
         staging {
             dimension "default"
-            applicationIdSuffix ".stg"
+            applicationId "com.snowchat.app.stg"
             manifestPlaceholders = [appName: "[STG] SnowChat"]
         }
         development {
             dimension "default"
-            applicationIdSuffix ".dev"
+            applicationId "com.snowchat.app.dev"
             manifestPlaceholders = [appName: "[DEV] SnowChat"]
         }
     }
@@ -107,6 +108,45 @@ android {
         }
     }
 }
+
+// Configure Google Services plugin to use flavor-specific google-services.json
+after('plugins.google.gms.google-services') {
+    tasks.all { task ->
+        if (task.name.startsWith('process') && task.name.endsWith('GoogleServices')) {
+            task.doFirst {
+                println "Processing Google Services for ${task.name}"
+            }
+        }
+    }
+}
+
+// Copy flavor-specific google-services.json before build
+task copyGoogleServices {
+    doLast {
+        def buildVariant = android.productFlavors.collect { it.name }.find { buildName ->
+            gradle.startParameter.taskNames.any { it.contains(buildName) }
+        } ?: 'production'
+
+        def flavorDir = "src/${buildVariant}"
+        def flavorGoogleServices = file("${flavorDir}/google-services.json")
+        def defaultGoogleServices = file('google-services.json')
+
+        if (flavorGoogleServices.exists()) {
+            println "Copying flavor-specific google-services.json for ${buildVariant}"
+            copy {
+                from flavorGoogleServices
+                into '.'
+                rename { 'google-services.json' }
+            }
+        } else if (defaultGoogleServices.exists()) {
+            println "Using default google-services.json for ${buildVariant}"
+        } else {
+            println "WARNING: No google-services.json found for ${buildVariant}!"
+        }
+    }
+}
+
+preBuild.dependsOn copyGoogleServices
 
 flutter {
     source '../..'
